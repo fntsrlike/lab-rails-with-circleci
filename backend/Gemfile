@@ -66,3 +66,5 @@ gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
 
 # Linter
 gem 'rubocop', '~> 0.67.2', require: false
+
+gem 'devise'
