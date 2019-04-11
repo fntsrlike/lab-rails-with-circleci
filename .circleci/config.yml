@@ -1,20 +1,19 @@
-version: 2
+version: 2.1
 executors:
   backend-executor:
     working_directory: ~/lab-eshop/backend
     docker:
-      image: circleci/ruby:2.4.2-jessie-node
-jobs:
-  build:
-    executor: backend-executor
-    parallelism: 3
-    docker:
-      - image: circleci/ruby:2.4.2-jessie-node
+      - image: circleci/ruby:2.5-node
         environment:
           BUNDLE_JOBS: 3
           BUNDLE_RETRY: 3
           BUNDLE_PATH: vendor/bundle
           RAILS_ENV: test
+
+jobs:
+  build-backend:
+    executor: backend-executor
+    parallelism: 3
     steps:
       - checkout:
           path: ~/lab-eshop
@@ -29,7 +28,7 @@ jobs:
           name: Bundle Install
           command: bundle check || bundle install
       - save_cache:
-          key: rails-bundle-{{ checksum "Gemfile.lock" }}
+          key: backend-bundle-{{ checksum "Gemfile.lock" }}
           paths:
             - vendor/bundle
       - restore_cache:
@@ -46,15 +45,9 @@ jobs:
       - run:
           name: Database setup
           command: bin/rails db:schema:load --trace
-      - run:
-          name: Run rspec in parallel
-          command: |
-            bundle exec rspec --profile 10 \
-                              --format RspecJunitFormatter \
-                              --out test_results/rspec.xml \
-                              --format progress \
-                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
-      - store_test_results:
-          path: test_results
+
 workflows:
   version: 2
+  basic:
+    jobs:
+      - build-backend
